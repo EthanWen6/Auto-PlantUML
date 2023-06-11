@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto PlantUML</title>
+    <!-- 导入样式表 -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- 导入js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/mode-plantuml.js" type="text/javascript" charset="utf-8"></script>
+
+    <!-- 添加自定义JavaScript代码 -->
+     <script>
+        window.addEventListener('DOMContentLoaded', function() {
+		var editor = ace.edit("editor");
+
+    // 初始化设置和其他代码...
+
+    // 监听编辑器内容变化
+		editor.session.on('change', function() {
+        // 提取编辑器中的PlantUML代码
+        var plantUmlCode = editor.getValue();
+
+        // 发送PlantUML代码到服务器端进行解析和生成图表
+        // 这里假设有一个名为parsePlantUml的服务器端函数可以完成解析和生成图表的操作
+        parsePlantUml(plantUmlCode, function(response) {
+            // 服务器返回生成的图像文件路径
+            var imageUrl = response.imageUrl;
+
+            // 更新右侧输出区域中的图像
+            var diagramImg = document.getElementById('diagram');
+            diagramImg.src = imageUrl;
+        });
+    });
+
+    // 服务器端解析PlantUML代码并生成图表的函数
+    function parsePlantUml(plantUmlCode, callback) {
+        fetch('/generate-diagram', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                code: plantUmlCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => callback(data))
+        .catch(error => console.error(error));
+    }
+
+   // 定期刷新图像
+setInterval(function() {
+    var diagramImg = document.getElementById('diagram');
+    var currentSrc = diagramImg.src;
+
+    // 创建 URLSearchParams 对象
+    var searchParams = new URLSearchParams();
+
+    // 设置时间戳参数
+    searchParams.set('time', new Date().getTime());
+
+    // 将参数附加到 URL
+    var updatedUrl = new URL(currentSrc);
+    updatedUrl.search = searchParams.toString();
+
+    // 更新图像的 URL
+    diagramImg.src = updatedUrl.href;
+}, 5000); // 每隔5秒刷新一次
+
+// 获取textarea和提交按钮的引用
+    const textInput = document.getElementById('textInput');
+    const submitButton = document.getElementById('submitButton');
+
+    // 点击提交按钮时的事件处理函数
+    submitButton.addEventListener('click', () => {
+        // 获取用户输入的文本
+        const userInput = textInput.value;
+
+        // 发送异步请求将用户输入的文本传递给服务器
+        fetch('/process-user-input', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: userInput
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // 从服务器获取回复并处理
+             const reply = data.reply;
+
+            // 将回复内容设置为编辑器的文本
+             editor.setValue(reply);
+
+            // 在这里进行处理，例如将回复显示在页面上的某个元素中
+            console.log(reply);
+        })
+        .catch(error => {
+            // 处理错误
+            console.error('发生错误:', error);
+        });
+    });
+
+
+});
+
+
+
+
+    </script>
+</head>
+<body>
+    <div id="header">
+        <h1>Auto PlantUML</h1>
+    </div>
+
+    <!-- 内容区域 -->
+    <div id="content">
+        <div id="upperSection">
+            <div id="editor">
+                <!-- PlantUML 编辑器 -->
+            </div>
+            <div id="output">
+                <h2>输出结果:</h2>
+                <div id="diagramContainer">
+                    <img id="diagram" src="./static/diagram.png" alt="PlantUML Diagram">
+                </div>
+            </div>
+        </div>
+
+        <div id="lowerSection">
+            <textarea id="textInput" placeholder="输入文本"></textarea>
+            <button id="submitButton">提交</button>
+        </div>
+    </div>
+</body>
+</html>
