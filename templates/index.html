@@ -17,7 +17,34 @@
 
     // 初始化设置和其他代码...
 
-    // 监听编辑器内容变化
+    // 服务器端解析PlantUML代码并生成图表的函数
+    function parsePlantUml(plantUmlCode, callback) {
+        fetch('/generate-diagram', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                code: plantUmlCode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // 获取图像的Base64编码字符串
+            var imageBase64 = data.image_base64;
+
+            // 更新右侧输出区域中的图像
+            var diagramImg = document.getElementById('diagram');
+            diagramImg.src = 'data:image/png;base64,' + imageBase64;
+
+            // 调用回调函数，传递生成的图像URL
+            callback({ imageUrl: diagramImg.src });
+        })
+        .catch(error => console.error(error));
+    }
+
+  // 监听编辑器内容变化
+        var imageUrl=''
 		editor.session.on('change', function() {
         // 提取编辑器中的PlantUML代码
         var plantUmlCode = editor.getValue();
@@ -34,40 +61,8 @@
         });
     });
 
-    // 服务器端解析PlantUML代码并生成图表的函数
-    function parsePlantUml(plantUmlCode, callback) {
-        fetch('/generate-diagram', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                code: plantUmlCode
-            })
-        })
-        .then(response => response.json())
-        .then(data => callback(data))
-        .catch(error => console.error(error));
-    }
 
-   // 定期刷新图像
-setInterval(function() {
-    var diagramImg = document.getElementById('diagram');
-    var currentSrc = diagramImg.src;
 
-    // 创建 URLSearchParams 对象
-    var searchParams = new URLSearchParams();
-
-    // 设置时间戳参数
-    searchParams.set('time', new Date().getTime());
-
-    // 将参数附加到 URL
-    var updatedUrl = new URL(currentSrc);
-    updatedUrl.search = searchParams.toString();
-
-    // 更新图像的 URL
-    diagramImg.src = updatedUrl.href;
-}, 5000); // 每隔5秒刷新一次
 
 // 获取textarea和提交按钮的引用
     const textInput = document.getElementById('textInput');
@@ -127,13 +122,13 @@ setInterval(function() {
             <div id="output">
                 <h2>输出结果:</h2>
                 <div id="diagramContainer">
-                    <img id="diagram" src="./static/diagram.png" alt="PlantUML Diagram">
+                    <img id="diagram" src="" alt="PlantUML Diagram">
                 </div>
             </div>
         </div>
 
         <div id="lowerSection">
-            <textarea id="textInput" placeholder="输入文本"></textarea>
+            <textarea id="textInput" placeholder="请描述你的需求，例如：绘制拨打电话的时序图"></textarea>
             <button id="submitButton">提交</button>
         </div>
     </div>

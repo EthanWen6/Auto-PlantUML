@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify, send_file,render_template
 import plantuml
 import openai
+import base64
 
 app = Flask(__name__, static_folder='static')
 
@@ -16,12 +18,10 @@ def generate_diagram():
     puml = plantuml.PlantUML(url='http://www.plantuml.com/plantuml/img/')
     image_bytes = puml.processes(plantuml_code)
 
-    # 保存图片到服务器的临时目录中
-    image_path = 'static/diagram.png'
-    with open(image_path, 'wb') as image_file:
-        image_file.write(image_bytes)
+    # 将图片字节流转换为Base64编码字符串
+    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
 
-    return send_file(image_path, mimetype='image/png')
+    return jsonify({'image_base64': image_base64})
 
 openai.api_key = "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"
 
@@ -31,8 +31,8 @@ def process_user_input():
 
     # 构造对话历史，替换示例助手的部分
     messages = [
-        {"role": "system", "content": "你是一个公司的产品经理"},
-        {"role": "system", "name": "example_user", "content": "你需要了解PlantUML这种语言，这是用来绘制UML图型的语言"},
+        {"role": "system", "content": "你是一个PlantUML输出工具，需要根据用户描述的场景输出PlantUML代码"},
+        {"role": "system", "content": "你的输出必须且只能包含代码块，不需要额外的描述"},
         {"role": "system", "name":"example_user", "content": user_content}
     ]
 
