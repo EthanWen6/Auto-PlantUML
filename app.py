@@ -52,6 +52,7 @@ def process_user_input():
     end_index = reply_content.index(end_delimiter) + len(end_delimiter)
 
     code_block = reply_content[start_index:end_index]
+    code_block = "!theme minty\n" + code_block
 
     print(code_block)
     return jsonify({'reply': code_block})
