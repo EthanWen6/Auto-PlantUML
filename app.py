@@ -28,7 +28,7 @@ def generate_diagram():
 
     return jsonify({'image_base64': image_base64})
 
-openai.api_key = "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"
+openai.api_key = "your api key"
 
 
 
