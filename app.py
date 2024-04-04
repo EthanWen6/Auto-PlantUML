@@ -76,8 +76,8 @@ def process_message():
 def send_to_chatgpt(message):
     # 构造对话历史，替换示例助手的部分
     messages = [
-        {"role": "system", "content": "你是一个联易融国际供应链金融方向的智能客服"},
-        {"role": "system", "content": "联易融国际的主要产品有Digital Trade，Digital Finance 和 Digital Payment"},
+        {"role": "system", "content": ""},
+        {"role": "system", "content": ""},
         {"role": "system", "name": "example_user", "content": message}
     ]
 
